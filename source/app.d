@@ -2,7 +2,7 @@ import std.stdio;
 import std.getopt;
 import std.random;
 
-import comms;
+import vindinium;
 
 int main(string[] args) {
     string server  = "vindinium.org";
@@ -38,8 +38,8 @@ int main(string[] args) {
         return -1;
     }
 
-    GameConnection.Mode mode;
-    switch(mode_str) with(GameConnection.Mode) {
+    Vindinium.Mode mode;
+    switch(mode_str) with(Vindinium.Mode) {
         case "training":
             mode = Training;
             break;
@@ -53,17 +53,18 @@ int main(string[] args) {
             return -1;
     }
 
-    GameConnection c = GameConnection(key, server, mode, turns, map);
-    c.connect();
+    Vindinium c = Vindinium(key, server, mode, turns, map);
+    auto game = c.connect();
 
-    writeln("View the game at: ", c.view_url);
+    writeln("Started game in '%s' mode", mode);
+    writeln("View the game at: ", game.view_url);
 
-    while(c.is_running) {
-        auto cmd = uniform!(GameConnection.Command);
-        c.send_command(uniform!(GameConnection.Command));
+    while(!game.finished) {
+        auto cmd = uniform!(VindiniumGame.Command);
+        game.send_command(uniform!(VindiniumGame.Command));
 
-        writefln("Turn %3d: Issued command: %s", c.game_response.game.turn, cmd);
+        writefln("Turn %3d: Issued command: %s", game.turn, cmd);
     }
-    writefln("Finished after %d total turns", c.game_response.game.turn);
+    writefln("Finished after %d total turns", game.turn);
     return 0;
 }
